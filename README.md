@@ -1,3 +1,5 @@
+![Caspersky](./Caspersky.jpg)
+
 # Caspersky: A Friendly Ghost Node 👻☕
 
 > *"Take a nice cup of coffee and leave a message."*
