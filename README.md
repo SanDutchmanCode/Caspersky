@@ -57,7 +57,7 @@ Caspersky plays with the psychology of the observant:
 ## 📁 Repository Structure
 
 ```
-├── Caspersky_Ghost.ino      # Main autonomous firmware (headless, heartbeat, SSID rotation)
+├── Caspersky.ino      # Main autonomous firmware (headless, heartbeat, SSID rotation)
 ├── VaultSetup.h             # Header file for initial vault generation
 └── VaultSetup.cpp           # One-time setup utility for creating /vault.bin
 
