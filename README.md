@@ -36,6 +36,8 @@ Hidden deep within the physical flash memory via **LittleFS** lies `/vault.bin`â
 
 ### Hardware-Bound Encryption (AES-GCM)
 The vault uses **AES-GCM** encryption. The cryptographic key is dynamically derived by hashing a fusion of the ESP32's unique **eFuse MAC (ChipID)** and your secret **Extract**. If an intruder physically extracts the flash memory, the data remains completely unreadable without possessing both the exact physical hardware chip *and* the secret Extract.
+â€‹
+> *"Optional Hardware Hardening: For maximum security, the firmware can be combined with the ESP32's native Flash Encryption and Secure Boot features, locking the encrypted vault and partition data permanently to the physical microcontroller. Note that this is an irreversible action in release mode and will permanently disable or severely restrict future USB uploads."*
 
 ### Unlocking via Serial Monitor
 To inspect the vault contents, connect the microcontroller via Serial (`115200 baud`) and complete the two-step verification:
