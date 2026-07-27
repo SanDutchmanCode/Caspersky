@@ -57,8 +57,8 @@ Caspersky plays with the psychology of the observant:
 
 ---
 
-##📡 Hardware Target & Connectivity
-​Hardware Specifications: While the firmware is compatible with standard ESP32 boards, the project is optimized for and tested on the Seeed Studio XIAO ESP32S3 (uFL). Utilizing its external uFL antenna connector allows for extended Wi-Fi reach across long distances (such as spanning from the meter cupboard to the back fence), while the ESP32-S3 architecture natively supports the required eFuse MAC extraction, LittleFS, and mbedTLS AES-GCM operations.
+## 📡 Hardware & Connectivity
+**​Hardware Specifications:** While the firmware is compatible with standard ESP32 boards, the project is optimized for and tested on the `Seeed Studio XIAO ESP32S3 (uFL)`. Utilizing its external uFL antenna connector allows for extended Wi-Fi reach across long distances (such as spanning from the meter cupboard to the back fence), while the ESP32-S3 architecture natively supports the required eFuse MAC extraction, LittleFS, and mbedTLS AES-GCM operations.
 
 ---
 
