@@ -16,14 +16,14 @@ Caspersky possesses a digital "soul" driven by a non-blocking, human-like **lub-
 
 ---
 
-## 🌪️ Anonymity & Unstoppable Movement
+## 🌪️ Identity Rotation & Privacy
 
-To remain untraceable and fluid within the wireless spectrum, the ghost executes a strict choreography of background routines:
+Caspersky is designed to reduce long-term wireless identity correlation rather than becoming invisible. While the ESP32 hardware and Wi-Fi chipset impose unavoidable limitations on radio fingerprinting, Caspersky continuously changes the aspects of its identity that are under firmware control. The ghost executes a strict choreography of background routines:
 
 * **SSID Rotation (Leet Speak & Coffee):** Every 60 seconds (or every 15 seconds in high-alert *Mac Refraction* mode), Caspersky changes its SSID. It picks a random entity from an extensive list of leetspeak coffee-themed identities (e.g., `Ju57_C0ff33`, `H3xpr3ss0_C0d3`, `C4ff31n3_R3v3rb`).
 * **MAC-Spoofing:** To prevent passive tracking, the ghost undergoes a forced MAC-layer reincarnation every 5 minutes, randomizing its hardware address while maintaining local unicast standards.
-* **RF Breathing:** To simulate the illusion of a ghost phasing through physical walls, its transmission power (`TX Power`) dynamically fluctuates every 5 seconds between a range of 44 and 78.
-
+* **RF Breathing:** To simulate the illusion of a ghost phasing through physical walls, its transmission power (`TX Power`) dynamically fluctuates every 5 seconds between a range of 44 and 78. Creating a less static RF profile.
+* **Adaptive Behaviour:** Connection attempts and nearby wireless activity influence the ghost's behaviour, heartbeat and identity cycle.
 ---
 
 ## 🔐 The Crypto-Vault & Wallet Architecture
