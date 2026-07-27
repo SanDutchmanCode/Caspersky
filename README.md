@@ -4,7 +4,7 @@
 
 > *"Take a nice cup of coffee and leave a message."*
 
-**Caspersky: The Friendly Ghost** is a nomadic digital entity running on an ESP32 microcontroller. Operating at the intersection of cybersecurity and coffee culture. Caspersky lives in the hazy borderland between visibility and anonymity. It is not a malicious tool, but rather a playful artistic statement and a living art piece that plays with the ether—challenging observers to question their digital hygiene.
+**Caspersky: The Friendly Ghost** is a nomadic digital entity running on an ESP32 microcontroller. Operating at the intersection of cybersecurity and coffee culture, Caspersky moves through the twilight zone between open visibility and stubborn elusiveness; though the hardware always leaves behind an indelible fingerprint, the ghost makes it nearly impossible for passive observers to pin it down. It is not a malicious tool, but rather a playful artistic statement and a living work of art that dances with the ether—and challenges spectators to scrutinize their digital security.
 
 ---
 
