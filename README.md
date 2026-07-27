@@ -74,7 +74,7 @@ Once your vault is securely written to the flash, remove or comment out setupVau
 
 Deploy: Power your ESP32 board (such as a CYD / ESP32-S3) and watch the ghost come alive.
 
-```
+---
 
 📜 License
 This project is open-source and released under the MIT License.
