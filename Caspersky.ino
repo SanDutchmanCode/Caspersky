@@ -192,26 +192,107 @@ String getSHA256(String input) {
   return hashStr;
 }
 
+void secureZeroString(String &str) {
+  if (str.length() > 0) {
+    volatile char* ptr = (volatile char*)str.c_str();
+    for (size_t i = 0; i < str.length(); i++) {
+      ptr[i] = 0;
+    }
+    str = ""; // Then clear the string
+  }
+}
+
 void showVaultViaSerial(String encryptedBean, String extractKey) {
+// Decrypted beans are loaded into RAM
   String decryptedBean = hardwareGCM("", false, extractKey, encryptedBean);
+  
+// Erase key material directly from RAM
+  secureZeroString(extractKey);
+
   if (decryptedBean == "ERROR: VAULT_TAMPERED" || decryptedBean == "ERROR: DATA_TOO_SHORT") {
-    Serial.println("!! ALARM !! INTEGRITY_CHECK_FAILED - DATA_CORRUPTION_OR_TAMPERING_DETECTED");
+    Serial.println("!! ALERT!! INTEGRITY_CHECK_FAILED - DATA_CORRUPTION_OR_TAMPERING_DETECTED");
+    secureZeroString(decryptedBean);
+    secureZeroString(encryptedBean);
     delay(5000);
     ESP.restart();
   }
+  
   Serial.println("--- VAULT CONTENT ---");
   Serial.println(decryptedBean);
   Serial.println("---------------------");
-  delay(60000);
+  
+// IMMEDIATELY CLEARED: The sensitive beans and encrypted data are immediately wiped from RAM!
+  secureZeroString(decryptedBean);
+  secureZeroString(encryptedBean);
+  
+  Serial.println("[Vault contents have been immediately wiped from RAM. System restarting in 5 seconds...]");
+  
+  // Non-blocking wachtmoment voor de reset
+  unsigned long resetTimer = millis();
+  while (millis() - resetTimer < 5000) {
+    updateHeartbeat();
+    yield();
+  }
+  
   ESP.restart();
 }
 
 void checkVaultTrigger() {
+  static int failedAttempts = 0;
+  const int maxAttempts = 3;
+  
+  static bool inLockdown = false;
+  static unsigned long lockdownTimer = 0;
+  
+  static bool waitingForExtract = false;
+  static String cachedEncryptedBean = "";
+  static unsigned long extractTimeoutTimer = 0;
+
+  unsigned long currentMillis = millis();
+
+  if (inLockdown) {
+    if (currentMillis - lockdownTimer >= 30000) {
+      inLockdown = false;
+      failedAttempts = 0;
+      Serial.println("Lockdown lifted. System ready again:");
+    }
+    return;
+  }
+
+  if (waitingForExtract) {
+    if (currentMillis - extractTimeoutTimer > 15000) {
+      Serial.println("\nTIMEOUT: Vault verification aborted.");
+      secureZeroString(cachedEncryptedBean);
+      waitingForExtract = false;
+      return;
+    }
+
+    if (Serial.available()) {
+      String extractInput = Serial.readStringUntil('\n');
+      extractInput.trim();
+      
+      waitingForExtract = false;
+      String tempBean = cachedEncryptedBean;
+      cachedEncryptedBean = "";
+      
+      showVaultViaSerial(tempBean, extractInput);
+      
+// immediately clear the extract input
+      secureZeroString(extractInput);
+    }
+    return;
+  }
+
   if (Serial.available()) {
     String input = Serial.readStringUntil('\n');
     input.trim();
     if (input.length() == 0) return;
+    
     String inputHash = getSHA256(input);
+    
+    // Immediately clear the entered 'coffee' string from RAM
+    secureZeroString(input);
+
     if (LittleFS.exists("/vault.bin")) {
       fs::File f = LittleFS.open("/vault.bin", "r");
       String storedHash = f.readStringUntil('\n');
@@ -220,16 +301,32 @@ void checkVaultTrigger() {
       encryptedBean.trim();
       f.close();
 
+    
+// Compare the hashes
       if (inputHash == storedHash) {
-        Serial.println("MATCH! Now enter EXTRACT to decrypt the vault...");
-        while (!Serial.available());
-        String extractInput = Serial.readStringUntil('\n');
-        extractInput.trim();
-        
-        showVaultViaSerial(encryptedBean, extractInput);
+        Serial.println("MATCH! Enter EXTRACT now within 15 seconds...");
+        failedAttempts = 0; 
+        cachedEncryptedBean = encryptedBean;
+        waitingForExtract = true;
+        extractTimeoutTimer = currentMillis;
       } else {
-        Serial.println("NO MATCH.");
+        failedAttempts++;
+        secureZeroString(encryptedBean);
+        Serial.print("NO MATCH. Failed attempts: ");
+        Serial.print(failedAttempts);
+        Serial.print("/");
+        Serial.println(maxAttempts);
+
+        if (failedAttempts >= maxAttempts) {
+          Serial.println("!! ALARM: TOO MANY FAILED ATTEMPTS. LOCKDOWN ACTIVE. (30s) !!");
+          inLockdown = true;
+          lockdownTimer = currentMillis;
+        }
       }
+      
+      // IMMEDIATELY ERASED: As soon as verification is complete, both hashes are also erased from RAM.
+      secureZeroString(inputHash);
+      secureZeroString(storedHash);
     }
   }
 }
@@ -251,7 +348,6 @@ void setup() {
     Serial.println("LittleFS Mount Failed");
     return;
   }
-  // Zet dit ergens onderaan in je setup()
 esp_wifi_set_promiscuous(true);
 esp_wifi_set_promiscuous_rx_cb(&promiscuousRxCallback);
 }
@@ -259,23 +355,23 @@ esp_wifi_set_promiscuous_rx_cb(&promiscuousRxCallback);
 // --- DYNAMIC HUMAN HEARTBEAT LOGIC (PACKET-DRIVEN) ---
 void updateHeartbeat() {
   unsigned long currentMillis = millis();
-
-  // Bereken elke seconde hoeveel pakketjes er zijn binnengekomen
+  
+// Calculate how many packages have arrived every second
   if (currentMillis - lastPacketCheck >= 1000) {
     lastPacketCheck = currentMillis;
     
-    // Pakketten per seconde (beveiligd tegen race conditions met noInterrupts indien nodig, 
-    // maar voor een LED-hartslag is een lichte marge geen probleem)
+    // Packets per second (protected against race conditions using noInterrupts if necessary, 
+    // but for an LED heartbeat, a slight margin is not a problem)
     currentPacketsPerSecond = packetCounter; 
     packetCounter = 0; // Reset de teller voor de volgende seconde
 
-    // Map de pakketjes naar het hartslag-interval
-    // Bijv: 0 pakketjes = 1000ms pauze (rustig), 50+ pakketjes per seconde = 200ms pauze (stress/snelle hartslag)
+    // Map the packets to the heartbeat interval
+ ​​   // E.g.: 0 packets = 1000ms pause (calm), 50+ packets per second = 200ms pause (stress/rapid heartbeat)
     currentHeartbeatInterval = map(currentPacketsPerSecond, 0, 50, 1000, 200);
     currentHeartbeatInterval = constrain(currentHeartbeatInterval, 200, 1000);
   }
 
-  // De state machine voor de LED-hartslag (blijft ongewijzigd)
+// The state machine for the LED heartbeat (remains unchanged)
   switch (heartbeatState) {
     case 0:  
       if (currentMillis - heartbeatTimer >= (unsigned long)currentHeartbeatInterval) {
